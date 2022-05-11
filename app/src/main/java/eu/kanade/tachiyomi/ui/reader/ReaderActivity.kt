@@ -82,6 +82,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.VerticalPagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewer
+import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.contextCompatColor
@@ -200,6 +201,8 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
     var didTransistionFromChapter = false
     var visibleChapterRange = longArrayOf()
 
+    var isScrollingThroughPagesOrChapters = false
+
     companion object {
 
         const val SHIFT_DOUBLE_PAGES = "shiftingDoublePages"
@@ -294,6 +297,11 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         binding.chaptersSheet.chaptersBottomSheet.setup(this)
         config = ReaderConfig()
         initializeMenu()
+
+        preferences.incognitoMode()
+            .asImmediateFlowIn(lifecycleScope) {
+                SecureActivityDelegate.setSecure(this)
+            }
     }
 
     /**
@@ -681,6 +689,7 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
             if (isLoading) {
                 return@setOnClickListener
             }
+            isScrollingThroughPagesOrChapters = true
             val result = if (viewer is R2LPagerViewer) {
                 presenter.loadNextChapter()
             } else {
@@ -704,6 +713,7 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
             if (isLoading) {
                 return@setOnClickListener
             }
+            isScrollingThroughPagesOrChapters = true
             val result = if (viewer !is R2LPagerViewer) {
                 presenter.loadNextChapter()
             } else {
@@ -738,9 +748,11 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
                 override fun onStartTrackingTouch(slider: Slider) {
                     readerNavGestureDetector.lockVertical = false
                     readerNavGestureDetector.hasScrollHorizontal = true
+                    isScrollingThroughPagesOrChapters = true
                 }
 
                 override fun onStopTrackingTouch(slider: Slider) {
+                    isScrollingThroughPagesOrChapters = false
                 }
             },
             )
@@ -935,6 +947,12 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
                     preferences.pageLayout().set(newLayout.value)
                 }
             }
+        }
+    }
+
+    fun hideMenu() {
+        if (menuVisible) {
+            setMenuVisibility(false)
         }
     }
 
@@ -1204,11 +1222,14 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
      * Moves the viewer to the given page [index]. It does nothing if the viewer is null or the
      * page is not found.
      */
-    fun moveToPageIndex(index: Int, animated: Boolean = true) {
+    fun moveToPageIndex(index: Int, animated: Boolean = true, chapterChange: Boolean = false) {
         val viewer = viewer ?: return
         val currentChapter = presenter.getCurrentChapter() ?: return
         val page = currentChapter.pages?.getOrNull(index) ?: return
         viewer.moveToPage(page, animated)
+        if (chapterChange) {
+            isScrollingThroughPagesOrChapters = false
+        }
     }
 
     fun refreshChapters() {
