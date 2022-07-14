@@ -392,6 +392,8 @@ class PreferencesHelper(val context: Context) {
 
     fun showAllCategories() = flowPrefs.getBoolean("show_all_categories", true)
 
+    fun showAllCategoriesWhenSearching() = flowPrefs.getBoolean("show_all_categories_when_searching", true)
+
     fun hopperGravity() = flowPrefs.getInt("hopper_gravity", 1)
 
     fun filterOrder() = flowPrefs.getString("filter_order", FilterBottomSheet.Filters.DEFAULT_ORDER)

@@ -95,6 +95,7 @@ class LibraryPresenter(
     var forceShowAllCategories = false
     val showAllCategories
         get() = forceShowAllCategories || preferences.showAllCategories().get()
+    val showAllCategoriesWhenSearching get() = preferences.showAllCategoriesWhenSearching().get()
 
     private val libraryIsGrouped
         get() = groupType != UNGROUPED

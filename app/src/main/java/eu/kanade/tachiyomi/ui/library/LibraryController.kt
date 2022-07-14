@@ -1340,7 +1340,7 @@ class LibraryController(
     }
 
     fun search(query: String?): Boolean {
-        if (!query.isNullOrBlank() && this.query.isBlank() && !presenter.showAllCategories) {
+        if (!query.isNullOrBlank() && this.query.isBlank() && !presenter.showAllCategories && presenter.showAllCategoriesWhenSearching) {
             presenter.forceShowAllCategories = true
             presenter.getLibrary()
         } else if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {

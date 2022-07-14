@@ -19,6 +19,11 @@ class LibraryCategoryView @JvmOverloads constructor(context: Context, attrs: Att
             showAll.bindToPreference(preferences.showAllCategories()) {
                 controller?.presenter?.getLibrary()
                 binding.categoryShow.isEnabled = it
+                showAllWhenSearching.isEnabled = !it
+            }
+            showAllWhenSearching.isEnabled = !showAll.isChecked
+            showAllWhenSearching.bindToPreference(preferences.showAllCategoriesWhenSearching()) {
+                controller?.showMiniBar()
             }
             categoryShow.isEnabled = showAll.isChecked
             categoryShow.bindToPreference(preferences.showCategoryInTitle()) {
