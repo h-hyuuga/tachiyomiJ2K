@@ -189,7 +189,11 @@ class LibraryController(
     override var presenter = LibraryPresenter()
 
     private var observeLater: Boolean = false
-    var searchItem = SearchGlobalItem()
+    var searchItem = SearchModifierItem {
+        presenter.forceShowAllCategories = !presenter.forceShowAllCategories
+        presenter.getLibrary()
+        presenter.forceShowAllCategories
+    }
 
     var snack: Snackbar? = null
     var displaySheet: TabbedLibraryDisplaySheet? = null
@@ -958,7 +962,7 @@ class LibraryController(
                 override fun getSpanSize(position: Int): Int {
                     if (libraryLayout == LibraryItem.LAYOUT_LIST) return managerSpanCount
                     val item = this@LibraryController.mAdapter?.getItem(position)
-                    return if (item is LibraryHeaderItem || item is SearchGlobalItem || (item is LibraryItem && item.manga.isBlank())) {
+                    return if (item is LibraryHeaderItem || item is SearchModifierItem || (item is LibraryItem && item.manga.isBlank())) {
                         managerSpanCount
                     } else {
                         1
@@ -1340,10 +1344,8 @@ class LibraryController(
     }
 
     fun search(query: String?): Boolean {
-        if (!query.isNullOrBlank() && this.query.isBlank() && !presenter.showAllCategories) {
-            presenter.forceShowAllCategories = true
-            presenter.getLibrary()
-        } else if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {
+        searchItem.allCategoriesToggleIsVisible = !presenter.showAllCategories && presenter.groupType == BY_DEFAULT
+        if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {
             presenter.forceShowAllCategories = false
             presenter.getLibrary()
         }
@@ -1352,14 +1354,9 @@ class LibraryController(
             binding.libraryGridRecycler.recycler.scrollToPosition(0)
         }
         this.query = query ?: ""
-        if (this.query.isNotBlank() && adapter.scrollableHeaders.isEmpty()) {
+        if (this.query.isNotBlank()) {
             searchItem.string = this.query
-            adapter.addScrollableHeader(searchItem)
-        } else if (this.query.isNotBlank()) {
-            searchItem.string = this.query
-            (binding.libraryGridRecycler.recycler.findViewHolderForAdapterPosition(0) as? SearchGlobalItem.Holder)?.bind(
-                this.query,
-            )
+            if (adapter.scrollableHeaders.isEmpty()) { adapter.addScrollableHeader(searchItem) }
         } else if (this.query.isBlank() && adapter.scrollableHeaders.isNotEmpty()) {
             adapter.removeAllScrollableHeaders()
         }

@@ -19,7 +19,7 @@ import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
  * @property toggleShowAllCategories A function that toggles forceShowAllCategories in the LibraryPresenter
  *                                   Returns the new value of  forceShowAllCategories
  */
-class SearchGlobalItem(val toggleShowAllCategories: () -> Boolean) : AbstractFlexibleItem<SearchGlobalItem.Holder>() {
+class SearchModifierItem(val toggleShowAllCategories: () -> Boolean) : AbstractFlexibleItem<SearchModifierItem.Holder>() {
 
     var string = ""
     var allCategoriesToggleIsVisible = false
@@ -81,13 +81,13 @@ class SearchGlobalItem(val toggleShowAllCategories: () -> Boolean) : AbstractFle
             }
 
             binding.global.button.setOnClickListener {
-                val query = (adapter.getItem(flexibleAdapterPosition) as SearchGlobalItem).string
+                val query = (adapter.getItem(flexibleAdapterPosition) as SearchModifierItem).string
                 (adapter as? LibraryCategoryAdapter)?.libraryListener?.globalSearch(query)
             }
 
             allCategoriesToggleIsVisible = false
             binding.allCategories.button.setOnClickListener {
-                (adapter.getItem(flexibleAdapterPosition) as SearchGlobalItem).apply {
+                (adapter.getItem(flexibleAdapterPosition) as SearchModifierItem).apply {
                     isForceShowingAllCategories = toggleShowAllCategories()
                 }
             }
