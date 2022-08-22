@@ -7,6 +7,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
@@ -18,10 +19,13 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewPropertyAnimator
 import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -66,6 +70,7 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.LibraryControllerBinding
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
+import eu.kanade.tachiyomi.ui.base.MiniSearchView
 import eu.kanade.tachiyomi.ui.base.controller.BaseCoroutineController
 import eu.kanade.tachiyomi.ui.category.CategoryController
 import eu.kanade.tachiyomi.ui.category.ManageCategoryDialog
@@ -240,6 +245,8 @@ class LibraryController(
     var staggeredBundle: Parcelable? = null
     private var staggeredObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
 
+    // Dynamically injected into the search bar, controls category visibility during search
+    private lateinit var showAllCategoriesView: ImageView
     override fun getTitle(): String? {
         setSubtitle()
         return view?.context?.getString(R.string.library)
@@ -1051,6 +1058,8 @@ class LibraryController(
         displaySheet = null
         mAdapter = null
         saveStaggeredState()
+
+        (activityBinding?.searchToolbar?.searchView as? MiniSearchView)?.removeSearchModifierIcon(showAllCategoriesView)
         super.onDestroyView(view)
     }
 
@@ -1340,26 +1349,20 @@ class LibraryController(
     }
 
     fun search(query: String?): Boolean {
-        if (!query.isNullOrBlank() && this.query.isBlank() && !presenter.showAllCategories) {
-            presenter.forceShowAllCategories = true
-            presenter.getLibrary()
-        } else if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {
+        if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {
             presenter.forceShowAllCategories = false
             presenter.getLibrary()
+            showAllCategoriesView.isSelected = presenter.forceShowAllCategories
         }
 
         if (query != this.query && !query.isNullOrBlank()) {
             binding.libraryGridRecycler.recycler.scrollToPosition(0)
         }
         this.query = query ?: ""
-        if (this.query.isNotBlank() && adapter.scrollableHeaders.isEmpty()) {
+        showAllCategoriesView.visibility = if (!presenter.showAllCategories && presenter.groupType == BY_DEFAULT && this.query.isNotBlank()) VISIBLE else GONE
+        if (this.query.isNotBlank()) {
             searchItem.string = this.query
-            adapter.addScrollableHeader(searchItem)
-        } else if (this.query.isNotBlank()) {
-            searchItem.string = this.query
-            (binding.libraryGridRecycler.recycler.findViewHolderForAdapterPosition(0) as? SearchGlobalItem.Holder)?.bind(
-                this.query,
-            )
+            if (adapter.scrollableHeaders.isEmpty()) { adapter.addScrollableHeader(searchItem) }
         } else if (this.query.isBlank() && adapter.scrollableHeaders.isNotEmpty()) {
             adapter.removeAllScrollableHeaders()
         }
@@ -1803,6 +1806,23 @@ class LibraryController(
         val searchItem = activityBinding?.searchToolbar?.searchItem
         val searchView = activityBinding?.searchToolbar?.searchView
         activityBinding?.searchToolbar?.setQueryHint(resources?.getString(R.string.library_search_hint), query.isEmpty())
+
+        showAllCategoriesView = (searchView as? MiniSearchView)?.addSearchModifierIcon { context ->
+            ImageView(context).apply {
+                isSelected = presenter.forceShowAllCategories
+                visibility = GONE
+                setOnClickListener {
+                    presenter.forceShowAllCategories = !presenter.forceShowAllCategories
+                    presenter.getLibrary()
+                    isSelected = presenter.forceShowAllCategories
+                }
+                setImageResource(R.drawable.ic_show_all_categories_24dp)
+                imageTintList = ColorStateList.valueOf(context.getResourceColor(R.attr.actionBarTintColor))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    tooltipText = resources?.getText(R.string.show_all_categories)
+                }
+            }
+        }!!
 
         if (query.isNotEmpty()) {
             if (activityBinding?.searchToolbar?.isSearchExpanded != true) {
