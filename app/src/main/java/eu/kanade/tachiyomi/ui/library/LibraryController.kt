@@ -1814,7 +1814,7 @@ class LibraryController(
         val searchView = activityBinding?.searchToolbar?.searchView
         activityBinding?.searchToolbar?.setQueryHint(resources?.getString(R.string.library_search_hint), query.isEmpty())
 
-        showAllCategoriesView = (searchView as? MiniSearchView)?.addSearchModifierIcon { context ->
+        showAllCategoriesView = showAllCategoriesView ?: (searchView as? MiniSearchView)?.addSearchModifierIcon { context ->
             ImageView(context).apply {
                 isSelected = presenter.forceShowAllCategories
                 isGone = true
