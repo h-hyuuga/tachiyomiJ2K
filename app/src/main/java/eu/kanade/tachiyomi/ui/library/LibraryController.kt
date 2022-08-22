@@ -246,7 +246,7 @@ class LibraryController(
     private var staggeredObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     // Dynamically injected into the search bar, controls category visibility during search
-    private lateinit var showAllCategoriesView: ImageView
+    private var showAllCategoriesView: ImageView? = null
     override fun getTitle(): String? {
         setSubtitle()
         return view?.context?.getString(R.string.library)
@@ -1059,7 +1059,9 @@ class LibraryController(
         mAdapter = null
         saveStaggeredState()
 
-        (activityBinding?.searchToolbar?.searchView as? MiniSearchView)?.removeSearchModifierIcon(showAllCategoriesView)
+        showAllCategoriesView?.let {
+            (activityBinding?.searchToolbar?.searchView as? MiniSearchView)?.removeSearchModifierIcon(it)
+        }
         super.onDestroyView(view)
     }
 
@@ -1352,14 +1354,14 @@ class LibraryController(
         if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {
             presenter.forceShowAllCategories = false
             presenter.getLibrary()
-            showAllCategoriesView.isSelected = presenter.forceShowAllCategories
+            showAllCategoriesView?.isSelected = presenter.forceShowAllCategories
         }
 
         if (query != this.query && !query.isNullOrBlank()) {
             binding.libraryGridRecycler.recycler.scrollToPosition(0)
         }
         this.query = query ?: ""
-        showAllCategoriesView.isGone = presenter.showAllCategories || presenter.groupType != BY_DEFAULT || this.query.isBlank()
+        showAllCategoriesView?.isGone = presenter.showAllCategories || presenter.groupType != BY_DEFAULT || this.query.isBlank()
         if (this.query.isNotBlank()) {
             searchItem.string = this.query
             if (adapter.scrollableHeaders.isEmpty()) { adapter.addScrollableHeader(searchItem) }
