@@ -19,8 +19,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewPropertyAnimator
 import android.view.ViewTreeObserver
@@ -36,6 +34,7 @@ import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.ime
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.marginTop
@@ -1360,7 +1359,7 @@ class LibraryController(
             binding.libraryGridRecycler.recycler.scrollToPosition(0)
         }
         this.query = query ?: ""
-        showAllCategoriesView.visibility = if (!presenter.showAllCategories && presenter.groupType == BY_DEFAULT && this.query.isNotBlank()) VISIBLE else GONE
+        showAllCategoriesView.isGone = presenter.showAllCategories || presenter.groupType != BY_DEFAULT || this.query.isBlank()
         if (this.query.isNotBlank()) {
             searchItem.string = this.query
             if (adapter.scrollableHeaders.isEmpty()) { adapter.addScrollableHeader(searchItem) }
@@ -1811,7 +1810,7 @@ class LibraryController(
         showAllCategoriesView = (searchView as? MiniSearchView)?.addSearchModifierIcon { context ->
             ImageView(context).apply {
                 isSelected = presenter.forceShowAllCategories
-                visibility = GONE
+                isGone = true
                 setOnClickListener {
                     presenter.forceShowAllCategories = !presenter.forceShowAllCategories
                     presenter.getLibrary()
