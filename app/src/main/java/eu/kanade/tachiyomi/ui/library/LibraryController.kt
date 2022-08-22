@@ -1351,17 +1351,22 @@ class LibraryController(
     }
 
     fun search(query: String?): Boolean {
-        if (query.isNullOrBlank() && this.query.isNotBlank() && presenter.forceShowAllCategories) {
+        val isShowAllCategoriesSet = preferences.showAllCategories().get()
+        if (!query.isNullOrBlank() && this.query.isBlank() && !isShowAllCategoriesSet) {
+            presenter.forceShowAllCategories = preferences.showAllCategoriesWhenSearchingSingleCategory().get()
+            presenter.getLibrary()
+        } else if (query.isNullOrBlank() && this.query.isNotBlank() && !isShowAllCategoriesSet) {
+            preferences.showAllCategoriesWhenSearchingSingleCategory().set(presenter.forceShowAllCategories)
             presenter.forceShowAllCategories = false
             presenter.getLibrary()
-            showAllCategoriesView?.isSelected = presenter.forceShowAllCategories
         }
 
         if (query != this.query && !query.isNullOrBlank()) {
             binding.libraryGridRecycler.recycler.scrollToPosition(0)
         }
         this.query = query ?: ""
-        showAllCategoriesView?.isGone = presenter.showAllCategories || presenter.groupType != BY_DEFAULT || this.query.isBlank()
+        showAllCategoriesView?.isGone = isShowAllCategoriesSet || presenter.groupType != BY_DEFAULT || this.query.isBlank()
+        showAllCategoriesView?.isSelected = presenter.forceShowAllCategories
         if (this.query.isNotBlank()) {
             searchItem.string = this.query
             if (adapter.scrollableHeaders.isEmpty()) { adapter.addScrollableHeader(searchItem) }
