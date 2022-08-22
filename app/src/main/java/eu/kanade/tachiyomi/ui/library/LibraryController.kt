@@ -104,6 +104,7 @@ import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.collapse
+import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.expand
 import eu.kanade.tachiyomi.util.view.fullAppBarHeight
 import eu.kanade.tachiyomi.util.view.getItemView
@@ -1818,9 +1819,7 @@ class LibraryController(
                 }
                 setImageResource(R.drawable.ic_show_all_categories_24dp)
                 imageTintList = ColorStateList.valueOf(context.getResourceColor(R.attr.actionBarTintColor))
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    tooltipText = resources?.getText(R.string.show_all_categories)
-                }
+                compatToolTipText = resources?.getText(R.string.show_all_categories)
             }
         }!!
 
