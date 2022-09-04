@@ -298,15 +298,14 @@ class FilterBottomSheet @JvmOverloads constructor(context: Context, attrs: Attri
             if (libraryManga.any { it.manga.seriesType(sourceManager = sourceManager) == Manga.TYPE_MANHWA }) types.add(R.string.manhwa)
             if (libraryManga.any { it.manga.seriesType(sourceManager = sourceManager) == Manga.TYPE_MANHUA }) types.add(R.string.manhua)
             if (libraryManga.any { it.manga.seriesType(sourceManager = sourceManager) == Manga.TYPE_COMIC }) types.add(R.string.comic)
+            if (libraryManga.any { it.manga.seriesType(sourceManager = sourceManager) == Manga.TYPE_WEBTOON }) types.add(R.string.webtoon)
             if (types.isNotEmpty()) {
                 launchUI {
                     val mangaType = inflate(R.layout.filter_tag_group) as FilterTagGroup
                     mangaType.setup(
                         this@FilterBottomSheet,
                         R.string.manga,
-                        types.first(),
-                        types.getOrNull(1),
-                        types.getOrNull(2),
+                        *types.toTypedArray(),
                     )
                     this@FilterBottomSheet.mangaType = mangaType
                     reorderFilters()
@@ -320,6 +319,7 @@ class FilterBottomSheet @JvmOverloads constructor(context: Context, attrs: Attri
                         Manga.TYPE_MANHUA -> context.getString(R.string.manhua)
                         Manga.TYPE_MANHWA -> context.getString(R.string.manhwa)
                         Manga.TYPE_COMIC -> context.getString(R.string.comic)
+                        Manga.TYPE_WEBTOON -> context.getString(R.string.webtoon)
                         else -> ""
                     },
                 )
@@ -431,6 +431,7 @@ class FilterBottomSheet @JvmOverloads constructor(context: Context, attrs: Attri
                         context.getString(R.string.manhua) -> Manga.TYPE_MANHUA
                         context.getString(R.string.manhwa) -> Manga.TYPE_MANHWA
                         context.getString(R.string.comic) -> Manga.TYPE_COMIC
+                        context.getString(R.string.webtoon) -> Manga.TYPE_WEBTOON
                         else -> 0
                     }
                     preferences.filterMangaType().set(newIndex)
